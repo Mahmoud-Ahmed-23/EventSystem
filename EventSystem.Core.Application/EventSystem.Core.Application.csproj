@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EventSystem.Core.Application.Abstraction\EventSystem.Core.Application.Abstraction.csproj" />
+    <ProjectReference Include="..\EventSystem.Infastructure.Persistence\EventSystem.Infastructure.Persistence.csproj" />
+    <ProjectReference Include="..\EventSystem.Shared\EventSystem.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
