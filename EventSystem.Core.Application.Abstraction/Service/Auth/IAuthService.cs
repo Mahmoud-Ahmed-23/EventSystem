@@ -10,8 +10,12 @@ namespace EventSystem.Core.Application.Abstraction.Service.Auth
 {
 	public interface IAuthService
 	{
-		Task<string> Login(LoginDto loginDto);
+		Task<ReturnUserDto> Login(LoginDto loginDto);
 		Task<ReturnUserDto> Register(RegisterDto registerDto);
+
+		Task<ReturnUserDto> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
+
+		Task<bool> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
 
 	}
 }

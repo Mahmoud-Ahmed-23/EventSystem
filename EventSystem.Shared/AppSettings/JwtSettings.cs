@@ -12,7 +12,7 @@ namespace EventSystem.Shared.AppSettings
 		public required string Audience { get; set; }
 		public required string Issuer { get; set; }
 		public required double DurationInDays { get; set; }
-
+		public double JWTRefreshTokenExpire { get; set; }
 
 	}
 }

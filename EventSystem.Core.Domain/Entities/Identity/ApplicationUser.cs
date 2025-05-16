@@ -11,6 +11,7 @@ namespace EventSystem.Core.Domain.Entities.Identity
 	{
 		public DateTime CreatedAt { get; set; }
 		public required string FullName { get; set; }
+		public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
 	}
 }

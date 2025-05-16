@@ -1,19 +1,33 @@
 ﻿using EventSystem.Core.Application.Abstraction.Models.Auth;
 using EventSystem.Core.Application.Abstraction.Service.Auth;
 using EventSystem.Core.Domain.Entities.Identity;
+using EventSystem.Shared.AppSettings;
 using EventSystem.Shared.ErrorModule.Exceptions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using UnAuthorizedException = EventSystem.Shared.ErrorModule.Exceptions.UnAuthorizedException;
 using ValidationException = EventSystem.Shared.ErrorModule.Exceptions.ValidationException;
+using NotFoundException = EventSystem.Shared.ErrorModule.Exceptions.NotFoundException;
+using Azure;
 
 namespace EventSystem.Core.Application.Service.Auth
 {
 	internal class AuthService(UserManager<ApplicationUser> _userManager,
 		SignInManager<ApplicationUser> _signInManager,
-		RoleManager<IdentityRole> _roleManager) : IAuthService
+		RoleManager<IdentityRole> _roleManager,
+		 IOptions<JwtSettings> jwtSettings) : IAuthService
 	{
-		public async Task<string> Login(LoginDto loginDto)
+
+
+		private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+
+		public async Task<ReturnUserDto> Login(LoginDto loginDto)
 		{
 			var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
@@ -32,7 +46,19 @@ namespace EventSystem.Core.Application.Service.Auth
 			if (!result.Succeeded)
 				throw new UnAuthorizedException("Invalid Login");
 
-			return "Token";
+			var response = new ReturnUserDto()
+			{
+				Email = user.Email!,
+				FullName = user.FullName,
+				PhoneNumber = user.PhoneNumber!,
+				Id = user.Id,
+				Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault()!,
+				Token = await GenerateToken(user),
+			};
+
+			await CheckRefreshToken(_userManager, user, response);
+
+			return response;
 		}
 
 		public async Task<ReturnUserDto> Register(RegisterDto registerDto)
@@ -71,5 +97,174 @@ namespace EventSystem.Core.Application.Service.Auth
 				Role = registerDto.Role
 			};
 		}
+
+		private async Task<string> GenerateToken(ApplicationUser user)
+		{
+			var roles = await _userManager.GetRolesAsync(user);
+			var userClaims = await _userManager.GetClaimsAsync(user);
+
+			var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
+
+			var claims = new List<Claim>
+			{
+				new Claim(ClaimTypes.PrimarySid, user.Id),
+				new Claim(ClaimTypes.Email, user.Email!),
+				new Claim(ClaimTypes.MobilePhone,user.PhoneNumber!),
+				new Claim(ClaimTypes.Name, user.FullName)
+			}
+			.Union(userClaims)
+			.Union(roleClaims);
+
+
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
+
+			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+			var token = new JwtSecurityToken(
+				issuer: _jwtSettings.Issuer,
+				audience: _jwtSettings.Audience,
+				expires: DateTime.Now.AddMinutes(_jwtSettings.DurationInDays),
+				claims: claims,
+				signingCredentials: creds
+			);
+			return new JwtSecurityTokenHandler().WriteToken(token);
+		}
+
+		private RefreshToken GenerateRefreshToken()
+		{
+			var randomNumber = new byte[32];
+
+			var genrator = new RNGCryptoServiceProvider();
+
+			genrator.GetBytes(randomNumber);
+
+			return new RefreshToken()
+			{
+				Token = Convert.ToBase64String(randomNumber),
+				CreatedOn = DateTime.UtcNow,
+				ExpireOn = DateTime.UtcNow.AddDays(_jwtSettings.JWTRefreshTokenExpire)
+
+
+			};
+
+
+		}
+		private async Task CheckRefreshToken(UserManager<ApplicationUser> _userManager, ApplicationUser? user, ReturnUserDto response)
+		{
+			if (user!.RefreshTokens.Any(t => t.IsActive))
+			{
+				var acticetoken = user.RefreshTokens.FirstOrDefault(x => x.IsActive);
+				response.RefreshToken = acticetoken!.Token;
+				response.RefreshTokenExpirationDate = acticetoken.ExpireOn;
+			}
+			else
+			{
+
+				var refreshtoken = GenerateRefreshToken();
+				response.RefreshToken = refreshtoken.Token;
+				response.RefreshTokenExpirationDate = refreshtoken.ExpireOn;
+
+				user.RefreshTokens.Add(new RefreshToken()
+				{
+					Token = refreshtoken.Token,
+					ExpireOn = refreshtoken.ExpireOn,
+				});
+				await _userManager.UpdateAsync(user);
+			}
+		}
+
+		private string? ValidateToken(string token)
+		{
+			var authKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
+
+			var TokenHandler = new JwtSecurityTokenHandler();
+
+			try
+			{
+				TokenHandler.ValidateToken(token, new TokenValidationParameters()
+				{
+					IssuerSigningKey = authKey,
+					ValidateIssuerSigningKey = true,
+					ValidateIssuer = false,
+					ValidateAudience = false,
+					ValidateLifetime = false,
+					ClockSkew = TimeSpan.Zero,
+
+				}, out SecurityToken validatedToken);
+
+				var jwtToken = (JwtSecurityToken)validatedToken;
+
+				return jwtToken.Claims.First(x => x.Type == ClaimTypes.PrimarySid).Value;
+
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+
+		public async Task<ReturnUserDto> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
+		{
+			var userId = ValidateToken(refreshDto.Token!);
+
+			if (userId is null) throw new NotFoundException("User id Not Found", nameof(userId));
+
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user is null) throw new NotFoundException("User Do Not Exists", nameof(user.Id));
+
+			var UserRefreshToken = user!.RefreshTokens.SingleOrDefault(x => x.Token == refreshDto.RefreshToken && x.IsActive);
+
+			if (UserRefreshToken is null) throw new NotFoundException("Invalid Token", nameof(userId));
+
+			UserRefreshToken.RevokedOn = DateTime.UtcNow;
+
+			var newtoken = await GenerateToken(user);
+
+			var newrefreshtoken = GenerateRefreshToken();
+
+			user.RefreshTokens.Add(new RefreshToken()
+			{
+				Token = newrefreshtoken.Token,
+				ExpireOn = newrefreshtoken.ExpireOn
+			});
+
+			await _userManager.UpdateAsync(user);
+
+			return new ReturnUserDto()
+			{
+				Email = user.Email!,
+				FullName = user.FullName,
+				PhoneNumber = user.PhoneNumber!,
+				RefreshToken = newrefreshtoken.Token,
+				RefreshTokenExpirationDate = newrefreshtoken.ExpireOn,
+				Token = newtoken,
+				Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault()!
+			};
+
+		}
+
+
+		public async Task<bool> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
+		{
+			var userId = ValidateToken(refreshDto.Token!);
+
+			if (userId is null) return false;
+
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user is null) return false;
+
+			var UserRefreshToken = user!.RefreshTokens.SingleOrDefault(x => x.Token == refreshDto.RefreshToken && x.IsActive);
+
+			if (UserRefreshToken is null) return false;
+
+			UserRefreshToken.RevokedOn = DateTime.UtcNow;
+
+			await _userManager.UpdateAsync(user);
+			return true;
+		}
+
+
+
 	}
 }
