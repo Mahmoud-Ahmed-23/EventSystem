@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventSystem.Core.Application.Abstraction\EventSystem.Core.Application.Abstraction.csproj" />
+    <ProjectReference Include="..\EventSystem.Shared\EventSystem.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
