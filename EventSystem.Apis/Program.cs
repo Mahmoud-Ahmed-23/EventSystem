@@ -1,6 +1,7 @@
 
 using EventSystem.Apis.Extensions;
 using EventSystem.Apis.Middlewares;
+using EventSystem.Core.Application;
 using EventSystem.Infastructure.Persistence;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ namespace EventSystem.Apis
 			builder.Services.RegesteredPresestantLayer();
 			builder.Services.AddPersistenceServices(builder.Configuration);
 			builder.Services.AddIdentityServices(builder.Configuration);
+			builder.Services.AddApplicationServices();
 			// Add services to the container.
 
 			builder.Services.AddControllers();
