@@ -1,5 +1,7 @@
 ﻿using EventSystem.Core.Domain.Contracts.Persistence;
 using EventSystem.Infastructure.Persistence._Data;
+using EventSystem.Infastructure.Persistence.GenericRepo;
+using EventSystem.Infastructure.Persistence.UnitOfwork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +22,9 @@ namespace EventSystem.Infastructure.Persistence
 				options.UseLazyLoadingProxies()
 				.UseSqlServer(configuration.GetConnectionString("EventSystemContext"));
 			});
+
+			services.AddScoped<IUnitOfWork, UnitOfWork>();
+			services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
 
 			services.AddScoped<IEventSystemDbInitializer, EventSystemDbInitializer>();
 			return services;
