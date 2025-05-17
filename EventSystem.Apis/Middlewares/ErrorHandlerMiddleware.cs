@@ -1,6 +1,6 @@
-﻿using EventSystem.Shared.ErrorModule.Exceptions;
-using EventSystem.Shared.Responses;
+﻿using EventSystem.Shared.Responses;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using System.Net;
 using System.Text.Json;
 

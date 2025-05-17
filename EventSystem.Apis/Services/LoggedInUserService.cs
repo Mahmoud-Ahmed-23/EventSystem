@@ -13,6 +13,6 @@ namespace EventSystem.Apis.Services
 
 		}
 		public string? UserId =>
-				_httpcontextAccessor!.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+				_httpcontextAccessor!.HttpContext?.User?.FindFirstValue(ClaimTypes.PrimarySid);
 	}
 }

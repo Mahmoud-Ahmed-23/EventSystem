@@ -1,6 +1,7 @@
 ﻿using EventSystem.APIs.Controllers.Controllers._Base;
 using EventSystem.Core.Application.Abstraction;
 using EventSystem.Core.Application.Abstraction.Models.Categories;
+using EventSystem.Core.Application.Abstraction.Wrapper;
 using EventSystem.Shared.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,9 +21,9 @@ namespace EventSystem.APIs.Controllers.Controllers.Category
 
 
 		[HttpGet("GetCategories")]
-		public async Task<ActionResult<Response<List<ReturnCategoryDto>>>> GetCategories()
+		public async Task<ActionResult<Response<Pagination<ReturnCategoryDto>>>> GetCategories([FromQuery] int pageIndex, [FromQuery] int pageSize)
 		{
-			var result = await _serviceManager.categoryService.GetCategories();
+			var result = await _serviceManager.categoryService.GetCategories(pageIndex, pageSize);
 			return NewResult(result);
 		}
 

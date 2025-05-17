@@ -103,7 +103,7 @@ namespace EventSystem.Core.Application.Service.Auth
 
 			var claims = new List<Claim>
 			{
-				new Claim(ClaimTypes.NameIdentifier, user.Id),
+				new Claim(ClaimTypes.PrimarySid, user.Id),
 				new Claim(ClaimTypes.Email, user.Email!),
 				new Claim(ClaimTypes.MobilePhone,user.PhoneNumber!),
 				new Claim(ClaimTypes.Name, user.FullName)
@@ -119,7 +119,7 @@ namespace EventSystem.Core.Application.Service.Auth
 			var token = new JwtSecurityToken(
 				issuer: _jwtSettings.Issuer,
 				audience: _jwtSettings.Audience,
-				expires: DateTime.Now.AddMinutes(_jwtSettings.DurationInDays),
+				expires: DateTime.Now.AddDays(_jwtSettings.DurationInDays),
 				claims: claims,
 				signingCredentials: creds
 			);

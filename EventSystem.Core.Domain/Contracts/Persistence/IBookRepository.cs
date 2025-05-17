@@ -10,5 +10,6 @@ namespace EventSystem.Core.Domain.Contracts.Persistence
 	public interface IBookRepository : IGenericRepository<Book, int>
 	{
 		Task<bool> IsBookedByUser(string userId, int eventId);
+		Task<IEnumerable<Book>> GetAllBooksByUserId(string userId);
 	}
 }

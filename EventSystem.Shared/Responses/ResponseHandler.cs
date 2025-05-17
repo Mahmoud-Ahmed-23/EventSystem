@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -76,6 +77,15 @@ namespace EventSystem.Shared.Responses
 				Succeeded = true,
 				Message = message == null ? "Created" : message,
 				Meta = Meta
+			};
+		}
+		public Response<T> MethodNotAllowed<T>(string message = null!)
+		{
+			return new Response<T>
+			{
+				StatusCode = HttpStatusCode.MethodNotAllowed,
+				Succeeded = false,
+				Message = message ?? "Method Not Allowed"
 			};
 		}
 	}

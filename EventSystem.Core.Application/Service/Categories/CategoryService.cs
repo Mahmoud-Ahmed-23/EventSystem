@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using EventSystem.Core.Application.Abstraction.Models.Booking;
 using EventSystem.Core.Application.Abstraction.Models.Categories;
 using EventSystem.Core.Application.Abstraction.Service.Categories;
+using EventSystem.Core.Application.Abstraction.Wrapper;
 using EventSystem.Core.Domain.Contracts.Persistence;
 using EventSystem.Core.Domain.Entities.Categories;
+using EventSystem.Core.Domain.Specifications.Categories;
 using EventSystem.Shared.Responses;
 using System;
 using System.Collections.Generic;
@@ -39,18 +42,24 @@ namespace EventSystem.Core.Application.Service.Categories
 
 		}
 
-		public async Task<Response<IEnumerable<ReturnCategoryDto>>> GetCategories(CancellationToken cancellationToken = default)
+		public async Task<Response<Pagination<ReturnCategoryDto>>> GetCategories(int pageIndex, int pageSize, CancellationToken cancellationToken = default)
 		{
 			var categoryRepo = _unitOfWork.GetRepository<Category, int>();
 
-			var categories = await categoryRepo.GetAllAsync();
+			var spec = new CategoryPagination(pageSize, pageIndex);
+
+			var categories = await categoryRepo.GetAllWithSpecAsync(spec);
+
+			var count = categories.Count();
 
 			if (categories is null)
-				return NotFound<IEnumerable<ReturnCategoryDto>>("Categories Not Found!");
+				return NotFound<Pagination<ReturnCategoryDto>>("Categories Not Found!");
 
 			var mappedCategories = _mapper.Map<List<ReturnCategoryDto>>(categories);
 
-			return Success<IEnumerable<ReturnCategoryDto>>(mappedCategories);
+			var response = new Pagination<ReturnCategoryDto>(pageIndex, pageSize, count) { Data = mappedCategories };
+
+			return Success(response);
 		}
 
 		public async Task<Response<ReturnCategoryDto>> GetCategoryById(int id, CancellationToken cancellationToken = default)
@@ -107,6 +116,6 @@ namespace EventSystem.Core.Application.Service.Categories
 			return Success("Category Deleted Successfully!");
 		}
 
-
+		
 	}
 }

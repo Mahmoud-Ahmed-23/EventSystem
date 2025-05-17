@@ -1,21 +1,17 @@
 ﻿using AutoMapper;
-using EventSystem.Core.Application.Abstraction.Models.Categories;
 using EventSystem.Core.Application.Abstraction.Models.Events;
 using EventSystem.Core.Application.Abstraction.Service.Events;
+using EventSystem.Core.Application.Abstraction.Wrapper;
 using EventSystem.Core.Domain.Contracts.Persistence;
-using EventSystem.Core.Domain.Entities.Categories;
 using EventSystem.Core.Domain.Entities.Events;
+using EventSystem.Core.Domain.Specifications.Events;
 using EventSystem.Shared.Responses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventSystem.Core.Application.Service.Events
 {
 	internal class EventService(IUnitOfWork _unitOfWork, IMapper _mapper) : ResponseHandler, IEventService
 	{
+
 		public async Task<Response<ReturnEventDto>> CreateEvent(CreateEventDto createEventDto)
 		{
 			var eventRepo = _unitOfWork.EventRepository;
@@ -58,18 +54,26 @@ namespace EventSystem.Core.Application.Service.Events
 			return Success("Event Deleted Successfully!");
 		}
 
-		public async Task<Response<IEnumerable<ReturnEventDto>>> GetAllEvents()
+		public async Task<Response<Pagination<ReturnEventDto>>> GetAllEvents(int? categoryId, int pageIndex, int pageSize)
 		{
 			var eventRepo = _unitOfWork.GetRepository<Event, int>();
 
-			var events = await eventRepo.GetAllAsync();
+			var spec = new EventPagination(categoryId, pageSize, pageIndex);
+
+			var events = await eventRepo.GetAllWithSpecAsync(spec);
 
 			if (events is null)
-				return NotFound<IEnumerable<ReturnEventDto>>("Events Not Found!");
+				return NotFound<Pagination<ReturnEventDto>>("There isn't any Event!");
+
+			var countSpec = new EventCountSpec(categoryId);
+
+			var count = await _unitOfWork.GetRepository<Event, int>().GetCountAsync(countSpec);
 
 			var mappedEvents = _mapper.Map<List<ReturnEventDto>>(events);
 
-			return Success<IEnumerable<ReturnEventDto>>(mappedEvents);
+			var response = new Pagination<ReturnEventDto>(pageIndex, pageSize, count) { Data = mappedEvents };
+
+			return Success(response);
 		}
 
 		public async Task<Response<ReturnEventDto>> GetEventById(int eventId)
@@ -105,5 +109,7 @@ namespace EventSystem.Core.Application.Service.Events
 
 			return Success("Event Updated Successfully!");
 		}
+
+		
 	}
 }

@@ -21,6 +21,15 @@ namespace EventSystem.Infastructure.Persistence.Repositories
 			_dbContext = dbContext;
 		}
 
+		public async Task<IEnumerable<Book>> GetAllBooksByUserId(string userId)
+		{
+			var books = await _dbContext.Books
+				.Where(x => x.UserId == userId)
+				.ToListAsync();
+
+			return books;
+		}
+
 		public async Task<bool> IsBookedByUser(string userId, int eventId)
 		{
 			var isBooked = await _dbContext.Books

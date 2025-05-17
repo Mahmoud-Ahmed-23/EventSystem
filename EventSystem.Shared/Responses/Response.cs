@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EventSystem.Shared.Responses
@@ -38,5 +39,14 @@ namespace EventSystem.Shared.Responses
 		public string Message { get; set; }
 		public List<string> Errors { get; set; }
 		public T Data { get; set; }
+
+		public override string ToString()
+		{
+			return JsonSerializer.Serialize(this, new JsonSerializerOptions
+			{
+				PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+			});
+		}
+
 	}
 }
