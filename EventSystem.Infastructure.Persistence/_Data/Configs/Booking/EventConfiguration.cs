@@ -1,4 +1,4 @@
-﻿using EventSystem.Core.Domain.Entities.Booking;
+﻿using EventSystem.Core.Domain.Entities.Events;
 using EventSystem.Infastructure.Persistence._Data.Configs.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

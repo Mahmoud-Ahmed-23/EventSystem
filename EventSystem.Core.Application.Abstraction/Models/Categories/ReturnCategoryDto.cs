@@ -1,14 +1,17 @@
-﻿using EventSystem.Core.Domain.Contracts.Persistence;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EventSystem.Core.Domain.Common
+namespace EventSystem.Core.Application.Abstraction.Models.Categories
 {
-	public class BaseAuditableEntity<TKey> : BaseEntity<TKey>, IBaseAuditableEntity where TKey : IEquatable<TKey>
+	public class ReturnCategoryDto
 	{
+		public int Id { get; set; }
+		public required string Name { get; set; }
+		public required string Description { get; set; }
+
 		public string CreatedBy { get; set; } = null!;
 
 		public DateTime CreatedOn { get; set; }

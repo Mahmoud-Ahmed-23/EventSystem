@@ -14,7 +14,7 @@ namespace EventSystem.Core.Domain.Contracts.Persistence
 		public Task<TEntity> GetByIdAsync(TKey? id);
 		public Task<IEnumerable<TEntity>> GetAllAsync(bool WithTracking = false);
 		public Task AddAsync(TEntity entity);
-		public void UpdateAsync(TEntity entity);
-		public void DeleteAsync(TEntity entity);
+		public void Update(TEntity entity);
+		public void Delete(TEntity entity);
 	}
 }

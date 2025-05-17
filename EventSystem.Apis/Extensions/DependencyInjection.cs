@@ -9,10 +9,10 @@ namespace EventSystem.Apis.Extensions
 	{
 		public static IServiceCollection RegesteredPresestantLayer(this IServiceCollection services)
 		{
-			services.AddScoped(typeof(ILoggedInUserService), typeof(LoggedInUserService));
-
 
 			services.AddHttpContextAccessor();
+
+			services.AddScoped(typeof(ILoggedInUserService), typeof(LoggedInUserService));
 
 			services.AddControllers().ConfigureApiBehaviorOptions(options =>
 			{

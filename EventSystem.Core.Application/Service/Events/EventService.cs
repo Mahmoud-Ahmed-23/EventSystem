@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EventSystem.Core.Application.Abstraction
+namespace EventSystem.Core.Application.Service.Events
 {
-	public interface ILoggedInUserService
+	internal class EventService
 	{
-		public string? UserId { get; }
 	}
 }

@@ -13,6 +13,9 @@ namespace EventSystem.Core.Domain.Contracts.Persistence
 			where TEntity : BaseEntity<TKey>
 			where TKey : IEquatable<TKey>;
 
+		IBookRepository BookRepository { get; }
+		ICategoryRepository categoryRepository { get; }
+
 		Task<int> CompleteAsync();
 	}
 }

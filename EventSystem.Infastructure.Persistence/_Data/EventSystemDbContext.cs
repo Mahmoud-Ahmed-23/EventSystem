@@ -1,4 +1,6 @@
 ﻿using EventSystem.Core.Domain.Entities.Booking;
+using EventSystem.Core.Domain.Entities.Categories;
+using EventSystem.Core.Domain.Entities.Events;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;

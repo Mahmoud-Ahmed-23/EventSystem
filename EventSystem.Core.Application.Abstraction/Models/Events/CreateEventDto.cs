@@ -1,17 +1,16 @@
-﻿using EventSystem.Core.Domain.Common;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EventSystem.Core.Domain.Entities.Booking
+namespace EventSystem.Core.Application.Abstraction.Models.Events
 {
-	public class Event : BaseAuditableEntity<int>
+	public class CreateEventDto
 	{
-
 		public string Name { get; set; }
-		public string NormalizedName { get; set; }
+		public string NormalizedName { get { return Name.ToUpper(); } }
 
 		public string Description { get; set; }
 
@@ -23,11 +22,6 @@ namespace EventSystem.Core.Domain.Entities.Booking
 
 		public decimal Price { get; set; }
 
-		public string? ImageUrl { get; set; }
-
-
-		public virtual ICollection<Book>? Books { get; set; }
-		public virtual Category Category { get; set; }
-
+		public IFormFile? ImagePath { get; set; }
 	}
 }

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EventSystem.Infastructure.Persistence.GenericRepo
+namespace EventSystem.Infastructure.Persistence.Repositories.GenericRepo
 {
 	internal class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>
 		where TEntity : BaseEntity<TKey>
@@ -29,10 +29,10 @@ namespace EventSystem.Infastructure.Persistence.GenericRepo
 
 		public async Task AddAsync(TEntity entity)
 			=> await _dbContext.Set<TEntity>().AddAsync(entity);
-		public void UpdateAsync(TEntity entity)
+		public void Update(TEntity entity)
 		=> _dbContext.Set<TEntity>().Update(entity);
 
-		public void DeleteAsync(TEntity entity)
+		public void Delete(TEntity entity)
 			=> _dbContext.Set<TEntity>().Remove(entity);
 
 	}

@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EventSystem.Core.Application.Abstraction\EventSystem.Core.Application.Abstraction.csproj" />
     <ProjectReference Include="..\EventSystem.Core.Domain\EventSystem.Core.Domain.csproj" />
     <ProjectReference Include="..\EventSystem.Shared\EventSystem.Shared.csproj" />
   </ItemGroup>
