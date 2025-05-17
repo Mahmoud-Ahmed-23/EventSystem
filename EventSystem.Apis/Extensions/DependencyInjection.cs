@@ -28,6 +28,16 @@ namespace EventSystem.Apis.Extensions
 			}
 			).AddApplicationPart(typeof(APIs.Controllers.AssemblyInformation).Assembly);
 
+			services.AddCors(corsOptions =>
+			{
+				corsOptions.AddPolicy("FrontEnd", policyBuilder =>
+				{
+					policyBuilder.AllowAnyHeader()
+								 .AllowAnyMethod()
+								 .AllowAnyOrigin(); // Allow all domains
+				});
+			});
+
 			return services;
 		}
 	}

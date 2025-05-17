@@ -1,4 +1,5 @@
 ﻿using EventSystem.Core.Application.Abstraction.Models.Auth;
+using EventSystem.Core.Application.Abstraction.Models.Auth.ForgetPassword;
 using EventSystem.Shared.Responses;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,18 @@ namespace EventSystem.Core.Application.Abstraction.Service.Auth
 		Task<Response<ReturnUserDto>> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
 
 		Task<Response<bool>> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
+
+		Task<SuccessDto> SendCodeByEmailasync(SendCodeByEmailDto emailDto);
+
+
+		Task<SuccessDto> VerifyCodeByEmailAsync(ResetCodeConfirmationByEmailDto resetCodeDto);
+
+
+		Task<ReturnUserDto> ResetPasswordByEmailAsync(ResetPasswordByEmailDto resetCodeDto);
+
+
+		Task<SuccessDto> ConfirmEmailAsync(ConfirmationEmailCodeDto codeDto);
+
 
 	}
 }

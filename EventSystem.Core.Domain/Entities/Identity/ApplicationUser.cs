@@ -15,5 +15,8 @@ namespace EventSystem.Core.Domain.Entities.Identity
 		public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 		public virtual ICollection<Book> Books { get; set; }
 
+		public int? EmailConfirmResetCode { get; set; }
+		public DateTime? EmailConfirmResetCodeExpiry { get; set; }
+
 	}
 }

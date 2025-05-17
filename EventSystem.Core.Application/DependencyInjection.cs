@@ -1,13 +1,17 @@
 ﻿using EventSystem.Core.Application.Abstraction;
+using EventSystem.Core.Application.Abstraction.Service;
 using EventSystem.Core.Application.Abstraction.Service.Auth;
 using EventSystem.Core.Application.Abstraction.Service.Booking;
 using EventSystem.Core.Application.Abstraction.Service.Categories;
 using EventSystem.Core.Application.Abstraction.Service.Events;
 using EventSystem.Core.Application.Mapping;
 using EventSystem.Core.Application.Service.Auth;
+using EventSystem.Core.Application.Service.Auth.SendServices;
 using EventSystem.Core.Application.Service.Booking;
 using EventSystem.Core.Application.Service.Categories;
 using EventSystem.Core.Application.Service.Events;
+using EventSystem.Shared.AppSettings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -19,7 +23,7 @@ namespace EventSystem.Core.Application
 {
 	public static class DependencyInjection
 	{
-		public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+		public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.AddAutoMapper(typeof(MappingProfile));
 
@@ -52,6 +56,12 @@ namespace EventSystem.Core.Application
 				return () => serviceprovider.GetRequiredService<IEventService>();
 
 			});
+
+
+			services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+			services.AddTransient(typeof(IEmailServices), typeof(EmailService));
+
+
 			return services;
 		}
 

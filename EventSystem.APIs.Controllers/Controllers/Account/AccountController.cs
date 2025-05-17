@@ -1,6 +1,7 @@
 ﻿using EventSystem.APIs.Controllers.Controllers._Base;
 using EventSystem.Core.Application.Abstraction;
 using EventSystem.Core.Application.Abstraction.Models.Auth;
+using EventSystem.Core.Application.Abstraction.Models.Auth.ForgetPassword;
 using EventSystem.Core.Application.Abstraction.Service.Auth;
 using EventSystem.Shared.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -45,5 +46,34 @@ namespace EventSystem.APIs.Controllers.Controllers.Account
 
 		}
 
+
+		[HttpPost("SendCodeByEmail")]
+		public async Task<ActionResult<SuccessDto>> SendCodeByEmail(SendCodeByEmailDto forgetPasswordDto)
+		{
+			var result = await _serviceManager.AuthService.SendCodeByEmailasync(forgetPasswordDto);
+			return Ok(result);
+		}
+
+		[HttpPost("VerfiyCodeEmail")]
+		public async Task<ActionResult<SuccessDto>> VerfiyCodeEmail(ResetCodeConfirmationByEmailDto resetCode)
+		{
+			var result = await _serviceManager.AuthService.VerifyCodeByEmailAsync(resetCode);
+			return Ok(result);
+		}
+
+
+		[HttpPut("ResetPasswordEmail")]
+		public async Task<ActionResult<ReturnUserDto>> ResetPasswordEmail(ResetPasswordByEmailDto resetPassword)
+		{
+			var result = await _serviceManager.AuthService.ResetPasswordByEmailAsync(resetPassword);
+			return Ok(result);
+		}
+
+		[HttpPost("ConfirmEmail")]
+		public async Task<ActionResult<SuccessDto>> ConfirmEmail(ConfirmationEmailCodeDto codeDto)
+		{
+			var result = await _serviceManager.AuthService.ConfirmEmailAsync(codeDto);
+			return Ok(result);
+		}
 	}
 }
