@@ -4,6 +4,7 @@ using EventSystem.Infastructure.Persistence._Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventSystem.Infastructure.Persistence.Migrations
 {
     [DbContext(typeof(EventSystemDbContext))]
-    partial class EventSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250517171954_AddSendCodeProperties")]
+    partial class AddSendCodeProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

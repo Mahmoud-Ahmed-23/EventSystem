@@ -16,7 +16,7 @@ namespace EventSystem.Apis
 
 			builder.Services.RegesteredPresestantLayer();
 			builder.Services.AddPersistenceServices(builder.Configuration);
-			builder.Services.AddApplicationServices();
+			builder.Services.AddApplicationServices(builder.Configuration);
 			builder.Services.AddIdentityServices(builder.Configuration);
 			// Add services to the container.
 
@@ -44,6 +44,8 @@ namespace EventSystem.Apis
 			app.UseHttpsRedirection();
 
 			app.UseStaticFiles();
+
+			app.UseCors("FrontEnd");
 
 			app.UseAuthentication();
 			app.UseAuthorization();

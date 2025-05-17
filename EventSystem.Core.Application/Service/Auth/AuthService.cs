@@ -14,13 +14,18 @@ using System.Text;
 using UnAuthorizedException = EventSystem.Shared.ErrorModule.Exceptions.UnAuthorizedException;
 using ValidationException = EventSystem.Shared.ErrorModule.Exceptions.ValidationException;
 using NotFoundException = EventSystem.Shared.ErrorModule.Exceptions.NotFoundException;
+using BadRequestException = EventSystem.Shared.ErrorModule.Exceptions.BadRequestException;
 using EventSystem.Shared.Responses;
+using EventSystem.Core.Application.Abstraction.Models.Auth.ForgetPassword;
+using Microsoft.EntityFrameworkCore;
+using EventSystem.Core.Application.Abstraction.Service;
 
 namespace EventSystem.Core.Application.Service.Auth
 {
 	internal class AuthService(UserManager<ApplicationUser> _userManager,
 		SignInManager<ApplicationUser> _signInManager,
-		 IOptions<JwtSettings> jwtSettings) : ResponseHandler, IAuthService
+		 IOptions<JwtSettings> jwtSettings,
+		  IEmailServices emailServices) : ResponseHandler, IAuthService
 	{
 
 
@@ -79,6 +84,8 @@ namespace EventSystem.Core.Application.Service.Auth
 			if (!result.Succeeded)
 				throw new ValidationException() { Errors = result.Errors.Select(E => E.Description) };
 
+			var email = new SendCodeByEmailDto() { Email = user!.Email! };
+			await SendCodeByEmailasync(email);
 
 			var roleResult = await _userManager.AddToRoleAsync(newUser, registerDto.Role);
 
@@ -262,6 +269,123 @@ namespace EventSystem.Core.Application.Service.Auth
 		}
 
 
+		public async Task<SuccessDto> SendCodeByEmailasync(SendCodeByEmailDto emailDto)
+		{
+			var user = await _userManager.Users.Where(u => u.Email == emailDto.Email).FirstOrDefaultAsync();
+
+			if (user is null)
+				throw new BadRequestException("Invalid Email");
+
+			var ResetCode = RandomNumberGenerator.GetInt32(100_0, 999_9);
+
+			var ResetCodeExpire = DateTime.UtcNow.AddMinutes(15);
+
+			user.EmailConfirmResetCode = ResetCode;
+			user.EmailConfirmResetCodeExpiry = ResetCodeExpire;
+
+			var result = await _userManager.UpdateAsync(user);
+
+			if (!result.Succeeded)
+				throw new BadRequestException("Something Went Wrong While Sending Reset Code");
+
+			var Email = new EmailDto()
+			{
+				To = emailDto.Email,
+				Subject = "Reset Code For CarCare Account",
+				Body = $"We Have Recived Your Request For Reset Your Account Password, \nYour Reset Code Is ==> [ {ResetCode} ] <== \nNote: This Code Will Be Expired After 15 Minutes!",
+			};
+
+			await emailServices.SendEmail(Email);
+
+			var SuccessObj = new SuccessDto()
+			{
+				Status = "Success",
+				Message = "We Have Sent You The Reset Code"
+			};
+
+			return SuccessObj;
+		}
+
+		public async Task<SuccessDto> VerifyCodeByEmailAsync(ResetCodeConfirmationByEmailDto resetCodeDto)
+		{
+			var user = await _userManager.Users.Where(u => u.Email == resetCodeDto.Email).FirstOrDefaultAsync();
+
+			if (user is null)
+				throw new BadRequestException("Invalid Email");
+
+			if (user.EmailConfirmResetCode != resetCodeDto.ResetCode)
+				throw new BadRequestException("The Provided Code Is Invalid");
+
+			if (user.EmailConfirmResetCodeExpiry < DateTime.UtcNow)
+				throw new BadRequestException("The Provided Code Has Been Expired");
+
+			var SuccessObj = new SuccessDto()
+			{
+				Status = "Success",
+				Message = "Reset Code Is Verified, Please Proceed To Change Your Password"
+			};
+
+			return SuccessObj;
+		}
+
+		public async Task<ReturnUserDto> ResetPasswordByEmailAsync(ResetPasswordByEmailDto resetCodeDto)
+		{
+			var user = await _userManager.Users.Where(u => u.Email == resetCodeDto.Email).FirstOrDefaultAsync();
+
+			if (user is null)
+				throw new BadRequestException("Invalid Email");
+
+			var RemovePass = await _userManager.RemovePasswordAsync(user);
+
+			if (!RemovePass.Succeeded)
+				throw new BadRequestException("Something Went Wrong While Reseting Your Password");
+
+			var newPass = await _userManager.AddPasswordAsync(user, resetCodeDto.NewPassword);
+
+			if (!newPass.Succeeded)
+				throw new BadRequestException("Something Went Wrong While Reseting Your Password");
+
+			var mappedUser = new ReturnUserDto
+			{
+				FullName = user.FullName!,
+				Id = user.Id,
+				PhoneNumber = user.PhoneNumber!,
+				Email = user.Email!,
+				Token = await GenerateToken(user),
+			};
+
+			return mappedUser;
+		}
+
+
+		public async Task<SuccessDto> ConfirmEmailAsync(ConfirmationEmailCodeDto codeDto)
+		{
+			var user = await _userManager.Users.Where(U => U.Email == codeDto.Email).FirstOrDefaultAsync();
+
+			if (user is null)
+				throw new BadRequestException("Invalid Email");
+
+			if (user.EmailConfirmResetCode != codeDto.ConfirmationCode)
+				throw new BadRequestException("The Provided Code Is Invalid");
+
+			if (user.EmailConfirmResetCodeExpiry < DateTime.UtcNow)
+				throw new BadRequestException("The Provided Code Has Been Expired");
+
+			user.EmailConfirmed = true;
+
+			var result = await _userManager.UpdateAsync(user);
+
+			if (!result.Succeeded)
+				throw new BadRequestException("Something Went Wrong While Confirming Email");
+
+			var SuccessObj = new SuccessDto()
+			{
+				Status = "Success",
+				Message = "Email Has Been Confirmed"
+			};
+
+			return SuccessObj;
+		}
 
 	}
 }
