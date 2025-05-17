@@ -7,7 +7,7 @@ Provides a set of endpoints to manage events, users, attendance, and more.
 
 ## 🛠️ Requirements
 
-- ✅ [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+- ✅ [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
 - ✅ SQL Server
 - ✅ Visual Studio 2022 or Visual Studio Code
 
