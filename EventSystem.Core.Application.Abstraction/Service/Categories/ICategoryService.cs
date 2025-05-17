@@ -13,7 +13,7 @@ namespace EventSystem.Core.Application.Abstraction.Service.Categories
 		Task<Response<ReturnCategoryDto>> CreateCategory(CreateCategoryDto createCategoryDto, CancellationToken cancellationToken = default);
 		Task<Response<string>> UpdateCategory(int id, UpdateCategoryDto updateCategoryDto, CancellationToken cancellationToken = default);
 		Task<Response<string>> DeleteCategory(int id, CancellationToken cancellationToken = default);
-		Task<Response<List<ReturnCategoryDto>>> GetCategories(CancellationToken cancellationToken = default);
+		Task<Response<IEnumerable<ReturnCategoryDto>>> GetCategories(CancellationToken cancellationToken = default);
 		Task<Response<ReturnCategoryDto>> GetCategoryById(int id, CancellationToken cancellationToken = default);
 	}
 }

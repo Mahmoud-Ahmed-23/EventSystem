@@ -1,8 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EventSystem.Core.Application.Abstraction.Models.Events
 {
-	public class CreateEventDto
+	public class UpdateEventDto
 	{
 		public string Name { get; set; }
 

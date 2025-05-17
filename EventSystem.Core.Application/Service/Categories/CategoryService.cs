@@ -39,18 +39,18 @@ namespace EventSystem.Core.Application.Service.Categories
 
 		}
 
-		public async Task<Response<List<ReturnCategoryDto>>> GetCategories(CancellationToken cancellationToken = default)
+		public async Task<Response<IEnumerable<ReturnCategoryDto>>> GetCategories(CancellationToken cancellationToken = default)
 		{
 			var categoryRepo = _unitOfWork.GetRepository<Category, int>();
 
 			var categories = await categoryRepo.GetAllAsync();
 
 			if (categories is null)
-				return BadRequest<List<ReturnCategoryDto>>("Categories Not Found!");
+				return NotFound<IEnumerable<ReturnCategoryDto>>("Categories Not Found!");
 
 			var mappedCategories = _mapper.Map<List<ReturnCategoryDto>>(categories);
 
-			return Success(mappedCategories);
+			return Success<IEnumerable<ReturnCategoryDto>>(mappedCategories);
 		}
 
 		public async Task<Response<ReturnCategoryDto>> GetCategoryById(int id, CancellationToken cancellationToken = default)
@@ -60,7 +60,7 @@ namespace EventSystem.Core.Application.Service.Categories
 			var category = await categoryRepo.GetByIdAsync(id);
 
 			if (category is null)
-				return BadRequest<ReturnCategoryDto>("Category Not Found!");
+				return NotFound<ReturnCategoryDto>("Category Not Found!");
 
 			var mappedCategory = _mapper.Map<ReturnCategoryDto>(category);
 
@@ -74,14 +74,14 @@ namespace EventSystem.Core.Application.Service.Categories
 			var category = await categoryRepo.GetByIdAsync(id);
 
 			if (category is null)
-				return BadRequest<string>("Category Not Found!");
+				return NotFound<string>("Category Not Found!");
 
 			var updatedCategory = _mapper.Map(updateCategoryDto, category);
 
 			categoryRepo.Update(updatedCategory);
-			
+
 			var completed = await _unitOfWork.CompleteAsync() > 0;
-			
+
 			if (!completed)
 				return BadRequest<string>("Category Update Failed!");
 
@@ -95,7 +95,7 @@ namespace EventSystem.Core.Application.Service.Categories
 			var category = await categoryRepo.GetByIdAsync(id);
 
 			if (category is null)
-				return BadRequest<string>("Category Not Found!");
+				return NotFound<string>("Category Not Found!");
 
 			categoryRepo.Delete(category);
 

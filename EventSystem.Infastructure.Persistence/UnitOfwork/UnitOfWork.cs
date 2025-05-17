@@ -18,6 +18,8 @@ namespace EventSystem.Infastructure.Persistence.UnitOfwork
 		private readonly EventSystemDbContext _dbContext;
 		private readonly Lazy<IBookRepository> _bookRepository;
 		private readonly Lazy<ICategoryRepository> _categoryRepository;
+		private readonly Lazy<IEventRepository> _eventRepository;
+
 
 
 		public UnitOfWork(EventSystemDbContext dbContext)
@@ -26,11 +28,14 @@ namespace EventSystem.Infastructure.Persistence.UnitOfwork
 			_repositories = new();
 			_bookRepository = new Lazy<IBookRepository>(() => new BookRepository(_dbContext));
 			_categoryRepository = new Lazy<ICategoryRepository>(() => new CategoryRepository(_dbContext));
+			_eventRepository = new Lazy<IEventRepository>(() => new EventRepository(_dbContext));
 		}
 
 		public IBookRepository BookRepository => _bookRepository.Value;
 
 		public ICategoryRepository categoryRepository => _categoryRepository.Value;
+
+		public IEventRepository EventRepository => _eventRepository.Value;
 
 		public async Task<int> CompleteAsync()
 			=> await _dbContext.SaveChangesAsync();

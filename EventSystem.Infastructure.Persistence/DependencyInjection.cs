@@ -35,6 +35,7 @@ namespace EventSystem.Infastructure.Persistence
 			services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
 			services.AddScoped(typeof(IBookRepository), typeof(BookRepository));
 			services.AddScoped(typeof(ICategoryRepository), typeof(CategoryRepository));
+			services.AddScoped(typeof(IEventRepository), typeof(EventRepository));
 
 			services.AddScoped<IEventSystemDbInitializer, EventSystemDbInitializer>();
 			return services;

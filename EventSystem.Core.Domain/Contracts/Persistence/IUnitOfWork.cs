@@ -15,6 +15,7 @@ namespace EventSystem.Core.Domain.Contracts.Persistence
 
 		IBookRepository BookRepository { get; }
 		ICategoryRepository categoryRepository { get; }
+		IEventRepository EventRepository { get; }
 
 		Task<int> CompleteAsync();
 	}

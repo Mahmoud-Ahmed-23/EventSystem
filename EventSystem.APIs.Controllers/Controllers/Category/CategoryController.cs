@@ -4,17 +4,13 @@ using EventSystem.Core.Application.Abstraction.Models.Categories;
 using EventSystem.Shared.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EventSystem.APIs.Controllers.Controllers.Dashboard
+namespace EventSystem.APIs.Controllers.Controllers.Category
 {
 	[Authorize]
-	public class DashboardController(IServiceManager _serviceManager) : BaseApiController
+	public class CategoryController(IServiceManager _serviceManager) : BaseApiController
 	{
+		[Authorize(Roles = "Admin")]
 		[HttpPost("CreateCategory")]
 		public async Task<ActionResult<Response<ReturnCategoryDto>>> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
 		{
@@ -38,6 +34,7 @@ namespace EventSystem.APIs.Controllers.Controllers.Dashboard
 			return NewResult(result);
 		}
 
+		[Authorize(Roles = "Admin")]
 		[HttpPut("UpdateCategory/{id}")]
 		public async Task<ActionResult<Response<string>>> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryDto updateCategoryDto)
 		{
@@ -45,6 +42,7 @@ namespace EventSystem.APIs.Controllers.Controllers.Dashboard
 			return NewResult(result);
 		}
 
+		[Authorize(Roles = "Admin")]
 		[HttpDelete("DeleteCategory/{id}")]
 		public async Task<ActionResult<Response<string>>> DeleteCategory([FromRoute] int id)
 		{
