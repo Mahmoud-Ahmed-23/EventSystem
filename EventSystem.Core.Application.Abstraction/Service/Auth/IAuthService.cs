@@ -1,4 +1,5 @@
 ﻿using EventSystem.Core.Application.Abstraction.Models.Auth;
+using EventSystem.Shared.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,12 @@ namespace EventSystem.Core.Application.Abstraction.Service.Auth
 {
 	public interface IAuthService
 	{
-		Task<ReturnUserDto> Login(LoginDto loginDto);
-		Task<ReturnUserDto> Register(RegisterDto registerDto);
+		Task<Response<ReturnUserDto>> Login(LoginDto loginDto);
+		Task<Response<ReturnUserDto>> Register(RegisterDto registerDto);
 
-		Task<ReturnUserDto> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
+		Task<Response<ReturnUserDto>> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
 
-		Task<bool> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
+		Task<Response<bool>> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
 
 	}
 }

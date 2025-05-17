@@ -16,8 +16,8 @@ namespace EventSystem.Apis
 
 			builder.Services.RegesteredPresestantLayer();
 			builder.Services.AddPersistenceServices(builder.Configuration);
-			builder.Services.AddIdentityServices(builder.Configuration);
 			builder.Services.AddApplicationServices();
+			builder.Services.AddIdentityServices(builder.Configuration);
 			// Add services to the container.
 
 			builder.Services.AddControllers();
@@ -30,7 +30,9 @@ namespace EventSystem.Apis
 
 			await app.InitializerCarCareIdentityContextAsync();
 
+			app.UseMiddleware<ErrorHandlerMiddleware>();
 			app.UseMiddleware<ExceptionHandlerMiddleware>();
+
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
@@ -38,7 +40,7 @@ namespace EventSystem.Apis
 				app.UseSwagger();
 				app.UseSwaggerUI();
 			}
-			
+
 			app.UseHttpsRedirection();
 
 			app.UseStaticFiles();

@@ -14,37 +14,35 @@ using System.Text;
 using UnAuthorizedException = EventSystem.Shared.ErrorModule.Exceptions.UnAuthorizedException;
 using ValidationException = EventSystem.Shared.ErrorModule.Exceptions.ValidationException;
 using NotFoundException = EventSystem.Shared.ErrorModule.Exceptions.NotFoundException;
-using Azure;
+using EventSystem.Shared.Responses;
 
 namespace EventSystem.Core.Application.Service.Auth
 {
 	internal class AuthService(UserManager<ApplicationUser> _userManager,
 		SignInManager<ApplicationUser> _signInManager,
-		RoleManager<IdentityRole> _roleManager,
-		 IOptions<JwtSettings> jwtSettings) : IAuthService
+		 IOptions<JwtSettings> jwtSettings) : ResponseHandler, IAuthService
 	{
 
 
 		private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
-		public async Task<ReturnUserDto> Login(LoginDto loginDto)
+		public async Task<Response<ReturnUserDto>> Login(LoginDto loginDto)
 		{
 			var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
 			if (user is null)
-			{
-				throw new UnAuthorizedException("Invalid Login");
-			}
+				return Unauthorized<ReturnUserDto>("Invalid Login");
+
 			var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, false, false);
 
 			if (!user.EmailConfirmed)
-				throw new UnAuthorizedException("Email is not Confirmed");
+				return Unauthorized<ReturnUserDto>("Email Not Confirmed");
 
 			if (result.IsLockedOut)
-				throw new UnAuthorizedException("Email is Locked Out");
+				return Unauthorized<ReturnUserDto>("User Locked Out");
 
 			if (!result.Succeeded)
-				throw new UnAuthorizedException("Invalid Login");
+				return Unauthorized<ReturnUserDto>("Invalid Login");
 
 			var response = new ReturnUserDto()
 			{
@@ -58,17 +56,15 @@ namespace EventSystem.Core.Application.Service.Auth
 
 			await CheckRefreshToken(_userManager, user, response);
 
-			return response;
+			return Success(response);
 		}
 
-		public async Task<ReturnUserDto> Register(RegisterDto registerDto)
+		public async Task<Response<ReturnUserDto>> Register(RegisterDto registerDto)
 		{
 			var user = await _userManager.FindByEmailAsync(registerDto.Email);
 
 			if (user is not null)
-			{
-				throw new UnAuthorizedException("User already exists");
-			}
+				return BadRequest<ReturnUserDto>("User Already Exists");
 
 			var newUser = new ApplicationUser()
 			{
@@ -89,13 +85,13 @@ namespace EventSystem.Core.Application.Service.Auth
 			if (!roleResult.Succeeded)
 				throw new ValidationException() { Errors = roleResult.Errors.Select(E => E.Description) };
 
-			return new ReturnUserDto()
+			return Success(new ReturnUserDto()
 			{
 				Email = newUser.Email,
 				FullName = newUser.FullName,
 				PhoneNumber = newUser.PhoneNumber,
 				Role = registerDto.Role
-			};
+			});
 		}
 
 		private async Task<string> GenerateToken(ApplicationUser user)
@@ -123,7 +119,7 @@ namespace EventSystem.Core.Application.Service.Auth
 			var token = new JwtSecurityToken(
 				issuer: _jwtSettings.Issuer,
 				audience: _jwtSettings.Audience,
-				expires: DateTime.Now.AddMinutes(_jwtSettings.DurationInDays),
+				expires: DateTime.Now.AddDays(_jwtSettings.DurationInDays),
 				claims: claims,
 				signingCredentials: creds
 			);
@@ -204,7 +200,7 @@ namespace EventSystem.Core.Application.Service.Auth
 		}
 
 
-		public async Task<ReturnUserDto> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
+		public async Task<Response<ReturnUserDto>> GetRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
 		{
 			var userId = ValidateToken(refreshDto.Token!);
 
@@ -215,7 +211,8 @@ namespace EventSystem.Core.Application.Service.Auth
 
 			var UserRefreshToken = user!.RefreshTokens.SingleOrDefault(x => x.Token == refreshDto.RefreshToken && x.IsActive);
 
-			if (UserRefreshToken is null) throw new NotFoundException("Invalid Token", nameof(userId));
+			if (UserRefreshToken is null)
+				return BadRequest<ReturnUserDto>("Invalid Refresh Token");
 
 			UserRefreshToken.RevokedOn = DateTime.UtcNow;
 
@@ -231,7 +228,7 @@ namespace EventSystem.Core.Application.Service.Auth
 
 			await _userManager.UpdateAsync(user);
 
-			return new ReturnUserDto()
+			return Success(new ReturnUserDto()
 			{
 				Email = user.Email!,
 				FullName = user.FullName,
@@ -240,28 +237,28 @@ namespace EventSystem.Core.Application.Service.Auth
 				RefreshTokenExpirationDate = newrefreshtoken.ExpireOn,
 				Token = newtoken,
 				Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault()!
-			};
+			});
 
 		}
 
 
-		public async Task<bool> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
+		public async Task<Response<bool>> RevokeRefreshTokenAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
 		{
 			var userId = ValidateToken(refreshDto.Token!);
 
-			if (userId is null) return false;
+			if (userId is null) return Success(false);
 
 			var user = await _userManager.FindByIdAsync(userId);
-			if (user is null) return false;
+			if (user is null) return Success(false);
 
 			var UserRefreshToken = user!.RefreshTokens.SingleOrDefault(x => x.Token == refreshDto.RefreshToken && x.IsActive);
 
-			if (UserRefreshToken is null) return false;
+			if (UserRefreshToken is null) return Success(false);
 
 			UserRefreshToken.RevokedOn = DateTime.UtcNow;
 
 			await _userManager.UpdateAsync(user);
-			return true;
+			return Success(true);
 		}
 
 

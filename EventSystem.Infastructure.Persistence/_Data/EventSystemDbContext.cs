@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using EventSystem.Core.Domain.Entities.Booking;
+using EventSystem.Core.Domain.Entities.Categories;
+using EventSystem.Core.Domain.Entities.Events;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -20,5 +23,8 @@ namespace EventSystem.Infastructure.Persistence._Data
 			base.OnModelCreating(builder);
 			builder.ApplyConfigurationsFromAssembly(typeof(AssemblyInformtion).Assembly);
 		}
+		public DbSet<Event> Events { get; set; }
+		public DbSet<Category> Categories { get; set; }
+		public DbSet<Book> Books { get; set; }
 	}
 }
